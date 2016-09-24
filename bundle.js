@@ -11,7 +11,7 @@ var canvas = document.getElementById('screen');
 var keyCode;
 var game = new Game(canvas, update, render, applyUserInput);
 var player = new Player({x: 0, y: 240})
-var cars = Car.generateCars(); 
+var cars = Car.generateCars(canvas); 
 console.log(player.state);
 
 /**
@@ -94,7 +94,6 @@ function Car(attrs) {
   this.imageHeight = 339;
   this.width = 100;
   this.height = this.width * (this.imageHeight / this.imageWidth);
-  console.log(this.height);
   this.spritesheet  = new Image();
   this.spritesheet.src = encodeURI('assets/cars_mini.svg');
   this.timer = 0;
@@ -103,10 +102,10 @@ function Car(attrs) {
   this.speed = 5;
 }
 
-Car.generateCars = function() {
+Car.generateCars = function(canvas) {
   var cars = []; 
   for(var i = 0; i < 2; i++) {
-    cars.push(new Car({x:100 * i, y:0, direction:-1}));
+    cars.push(new Car({x:100 * i, y:canvas.height, direction:-1}));
   }
   return cars;
 }
@@ -124,7 +123,7 @@ Car.prototype.update = function(time) {
 }
 
 Car.prototype._move = function(){
-  this.y = this.direction * this.speed;
+  this.y += this.direction * this.speed;
 }
 
 /**

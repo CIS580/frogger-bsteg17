@@ -10,7 +10,7 @@ var canvas = document.getElementById('screen');
 var keyCode;
 var game = new Game(canvas, update, render, applyUserInput);
 var player = new Player({x: 0, y: 240})
-var cars = Car.generateCars(); 
+var cars = Car.generateCars(canvas); 
 console.log(player.state);
 
 /**
