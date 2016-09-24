@@ -23,18 +23,40 @@ function Player(position) {
   this.timer = 0;
   this.frame = 0;
   this.frameRow;
+  this.framesBeforeNewInput = 0;
 }
 
 /**
  * @function updates the player object
  * {DOMHighResTimeStamp} time the elapsed time since the last frame
  */
-Player.prototype.changeState = function(kc) {
-  switch(kc) {
-    case 32: //space key
-      this.state = "jumping";
-    default:
-      this.state = "idle";
+Player.prototype.applyUserInput = function(kc) {
+  if (this.state != "jumping") {
+    switch(kc) {
+      case 38: //down arrow key
+        this.deltaX = 0;
+        this.deltaY = -1;
+        this.state = "jumping";
+        this.frame = 0;
+        this.framesBeforeNewInput = 4;
+        break;
+      case 39: //right arrow key
+        this.deltaX = 1;
+        this.deltaY = 0; 
+        this.state = "jumping";
+        this.frame = 0;
+        this.framesBeforeNewInput = 4;
+        break;
+      case 40: //up arrow key
+        this.deltaX = 0;
+        this.deltaY = 1; 
+        this.state = "jumping";
+        this.frame = 0;
+        this.framesBeforeNewInput = 4;
+        break;
+      default:
+        this.state = "idle";
+    }  
   }
 }
 
@@ -45,14 +67,26 @@ Player.prototype.changeState = function(kc) {
 Player.prototype.update = function(time) {
   this.timer += time;
   if(this.timer > MS_PER_FRAME) {
+    this._move();
     this.timer = 0;
     this.frame += 1;
     if(this.frame > 3) this.frame = 0;
   }
+}
+
+Player.prototype._move = function(){
   switch(this.state) {
     case "idle":
       break;
-    // TODO: Implement your player's update by state
+    case "jumping":
+      if (this.framesBeforeNewInput == 0) { 
+        this.state = "idle"; 
+        return;
+      }
+      this.x += (this.width * this.deltaX) / 4;
+      this.y += (this.height * this.deltaY) / 4;
+      this.framesBeforeNewInput--;
+      break;
   }
 }
 
@@ -75,7 +109,6 @@ Player.prototype.render = function(time, ctx) {
 }
 
 Player.prototype._draw = function(ctx) {
-    console.log(this.spritesheet);
     ctx.drawImage(
       // image
       this.spritesheet,

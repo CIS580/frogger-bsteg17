@@ -3,12 +3,14 @@
 /* Classes */
 const Game = require('./game.js');
 const Player = require('./player.js');
+const Car = require('./car.js');
 
 /* Global variables */
 var canvas = document.getElementById('screen');
 var keyCode;
 var game = new Game(canvas, update, render, applyUserInput);
 var player = new Player({x: 0, y: 240})
+var cars = Car.generateCars(); 
 console.log(player.state);
 
 /**
@@ -33,7 +35,7 @@ masterLoop(performance.now());
  */
 function update(elapsedTime) {
   player.update(elapsedTime);
-  // TODO: Update the game objects
+  cars.forEach(function(car){car.update(elapsedTime)});
 }
 
 /**
@@ -47,6 +49,7 @@ function render(elapsedTime, ctx) {
   ctx.fillStyle = "lightblue";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   player.render(elapsedTime, ctx);
+  cars.forEach(function(car){car.render(elapsedTime, ctx)});
 }
 
 /**
@@ -56,9 +59,8 @@ function render(elapsedTime, ctx) {
   *    iteration of game loop (defaults to null)
   */
 function applyUserInput(keyCode) {
-  console.log(player.state);
-  player.changeState(keyCode); 
-  console.log(player.state);
+  game.keyCode = null;
+  player.applyUserInput(keyCode); 
 }
 
 /**

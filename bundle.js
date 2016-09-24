@@ -4,12 +4,14 @@
 /* Classes */
 const Game = require('./game.js');
 const Player = require('./player.js');
+const Car = require('./car.js');
 
 /* Global variables */
 var canvas = document.getElementById('screen');
 var keyCode;
 var game = new Game(canvas, update, render, applyUserInput);
 var player = new Player({x: 0, y: 240})
+var cars = Car.generateCars(); 
 console.log(player.state);
 
 /**
@@ -34,7 +36,7 @@ masterLoop(performance.now());
  */
 function update(elapsedTime) {
   player.update(elapsedTime);
-  // TODO: Update the game objects
+  cars.forEach(function(car){car.update(elapsedTime)});
 }
 
 /**
@@ -48,6 +50,7 @@ function render(elapsedTime, ctx) {
   ctx.fillStyle = "lightblue";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   player.render(elapsedTime, ctx);
+  cars.forEach(function(car){car.render(elapsedTime, ctx)});
 }
 
 /**
@@ -57,9 +60,8 @@ function render(elapsedTime, ctx) {
   *    iteration of game loop (defaults to null)
   */
 function applyUserInput(keyCode) {
-  console.log(player.state);
-  player.changeState(keyCode); 
-  console.log(player.state);
+  game.keyCode = null;
+  player.applyUserInput(keyCode); 
 }
 
 /**
@@ -69,7 +71,83 @@ document.addEventListener("keydown", function(event) {
   game.keyCode = event.which;
 });
 
-},{"./game.js":2,"./player.js":3}],2:[function(require,module,exports){
+},{"./car.js":2,"./game.js":3,"./player.js":4}],2:[function(require,module,exports){
+"use strict";
+
+const MS_PER_FRAME = 1000/8;
+
+/**
+ * @module exports the Car class
+ */
+module.exports = exports = Car;
+
+/**
+ * @constructor Car 
+ * Creates a new car object
+ * @param {Postition} position object specifying an x and y
+ */
+function Car(attrs) {
+  this.state = "idle";
+  this.x = attrs.x;
+  this.y = attrs.y;
+  this.imageWidth  = 237;
+  this.imageHeight = 339;
+  this.width = 100;
+  this.height = this.width * (this.imageHeight / this.imageWidth);
+  console.log(this.height);
+  this.spritesheet  = new Image();
+  this.spritesheet.src = encodeURI('assets/cars_mini.svg');
+  this.timer = 0;
+  this.frame = 0;
+  this.direction = attrs.direction;
+  this.speed = 5;
+}
+
+Car.generateCars = function() {
+  var cars = []; 
+  for(var i = 0; i < 2; i++) {
+    cars.push(new Car({x:100 * i, y:0, direction:-1}));
+  }
+  return cars;
+}
+
+/**
+ * @function updates the car object
+ * {DOMHighResTimeStamp} time the elapsed time since the last frame
+ */
+Car.prototype.update = function(time) {
+  this.timer += time;
+  if(this.timer > MS_PER_FRAME) {
+    this._move();
+    this.timer = 0;
+  }
+}
+
+Car.prototype._move = function(){
+  this.y = this.direction * this.speed;
+}
+
+/**
+ * @function renders the car into the provided context
+ * {DOMHighResTimeStamp} time the elapsed time since the last frame
+ * {CanvasRenderingContext2D} ctx the context to render into
+ */
+Car.prototype.render = function(time, ctx) {
+  this._draw(ctx);
+}
+
+Car.prototype._draw = function(ctx) {
+    ctx.drawImage(
+      // image
+      this.spritesheet,
+      // source rectangle
+      0, 0, this.imageWidth, this.imageHeight,
+      // destination rectangle
+      this.x, this.y, this.width, this.height
+    );
+}
+
+},{}],3:[function(require,module,exports){
 "use strict";
 
 /**
@@ -133,7 +211,7 @@ Game.prototype.loop = function(newTime) {
   this.frontCtx.drawImage(this.backBuffer, 0, 0);
 }
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 "use strict";
 
 const MS_PER_FRAME = 1000/8;
@@ -159,18 +237,40 @@ function Player(position) {
   this.timer = 0;
   this.frame = 0;
   this.frameRow;
+  this.framesBeforeNewInput = 0;
 }
 
 /**
  * @function updates the player object
  * {DOMHighResTimeStamp} time the elapsed time since the last frame
  */
-Player.prototype.changeState = function(kc) {
-  switch(kc) {
-    case 32: //space key
-      this.state = "jumping";
-    default:
-      this.state = "idle";
+Player.prototype.applyUserInput = function(kc) {
+  if (this.state != "jumping") {
+    switch(kc) {
+      case 38: //down arrow key
+        this.deltaX = 0;
+        this.deltaY = -1;
+        this.state = "jumping";
+        this.frame = 0;
+        this.framesBeforeNewInput = 4;
+        break;
+      case 39: //right arrow key
+        this.deltaX = 1;
+        this.deltaY = 0; 
+        this.state = "jumping";
+        this.frame = 0;
+        this.framesBeforeNewInput = 4;
+        break;
+      case 40: //up arrow key
+        this.deltaX = 0;
+        this.deltaY = 1; 
+        this.state = "jumping";
+        this.frame = 0;
+        this.framesBeforeNewInput = 4;
+        break;
+      default:
+        this.state = "idle";
+    }  
   }
 }
 
@@ -181,14 +281,26 @@ Player.prototype.changeState = function(kc) {
 Player.prototype.update = function(time) {
   this.timer += time;
   if(this.timer > MS_PER_FRAME) {
+    this._move();
     this.timer = 0;
     this.frame += 1;
     if(this.frame > 3) this.frame = 0;
   }
+}
+
+Player.prototype._move = function(){
   switch(this.state) {
     case "idle":
       break;
-    // TODO: Implement your player's update by state
+    case "jumping":
+      if (this.framesBeforeNewInput == 0) { 
+        this.state = "idle"; 
+        return;
+      }
+      this.x += (this.width * this.deltaX) / 4;
+      this.y += (this.height * this.deltaY) / 4;
+      this.framesBeforeNewInput--;
+      break;
   }
 }
 
@@ -211,7 +323,6 @@ Player.prototype.render = function(time, ctx) {
 }
 
 Player.prototype._draw = function(ctx) {
-    console.log(this.spritesheet);
     ctx.drawImage(
       // image
       this.spritesheet,
@@ -222,4 +333,4 @@ Player.prototype._draw = function(ctx) {
     );
 }
 
-},{}]},{},[1,2,3]);
+},{}]},{},[1,4,3,2]);
