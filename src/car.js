@@ -16,22 +16,34 @@ function Car(attrs) {
   this.state = "idle";
   this.x = attrs.x;
   this.y = attrs.y;
+  this.carStyle = attrs.style;
   this.imageWidth  = 237;
   this.imageHeight = 339;
   this.width = 100;
   this.height = this.width * (this.imageHeight / this.imageWidth);
-  this.spritesheet  = new Image();
-  this.spritesheet.src = encodeURI('assets/cars_mini.svg');
   this.timer = 0;
   this.frame = 0;
   this.direction = attrs.direction;
   this.speed = 5;
-}
+  this.spritesheet  = new Image();
+  //this.spritesheet.src = (this.direction > 0 ? encodeURI('assets/inverse_cars_mini.png') : encodeURI('assets/cars_mini.svg'));  
+  if (this.direction > 0) {
+    this.spritesheet.src = encodeURI('assets/inverse_cars_mini.png');
+  } else {
+    this.spritesheet.src = encodeURI('assets/cars_mini.png');
+  }
+}  
+
 
 Car.generateCars = function(canvas) {
   var cars = []; 
   for(var i = 0; i < 2; i++) {
-    cars.push(new Car({x:100 * i, y:canvas.height, direction:-1}));
+    var randomNumber = Math.random();
+    var randomDirection = (randomNumber - .5) / Math.abs(randomNumber - .5);
+    var startingY = (randomDirection < 0 ? canvas.height : 0);
+    console.log(randomDirection);
+    var randomStyle = Math.floor(randomNumber * 5);
+    cars.push(new Car({x:100 * i, y:startingY, direction:randomDirection, style:randomStyle}));
   }
   return cars;
 }
@@ -66,7 +78,7 @@ Car.prototype._draw = function(ctx) {
       // image
       this.spritesheet,
       // source rectangle
-      0, 0, this.imageWidth, this.imageHeight,
+      (this.carStyle * this.imageWidth), 0, this.imageWidth, this.imageHeight,
       // destination rectangle
       this.x, this.y, this.width, this.height
     );
