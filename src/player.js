@@ -22,6 +22,7 @@ function Player(position) {
   this.spritesheet.src = encodeURI('assets/PlayerSprite2.png');
   this.timer = 0;
   this.frame = 0;
+  this.frameRow;
 }
 
 /**
@@ -42,14 +43,14 @@ Player.prototype.changeState = function(kc) {
  * {DOMHighResTimeStamp} time the elapsed time since the last frame
  */
 Player.prototype.update = function(time) {
+  this.timer += time;
+  if(this.timer > MS_PER_FRAME) {
+    this.timer = 0;
+    this.frame += 1;
+    if(this.frame > 3) this.frame = 0;
+  }
   switch(this.state) {
     case "idle":
-      this.timer += time;
-      if(this.timer > MS_PER_FRAME) {
-        this.timer = 0;
-        this.frame += 1;
-        if(this.frame > 3) this.frame = 0;
-      }
       break;
     // TODO: Implement your player's update by state
   }
@@ -63,15 +64,24 @@ Player.prototype.update = function(time) {
 Player.prototype.render = function(time, ctx) {
   switch(this.state) {
     case "idle":
-      ctx.drawImage(
-        // image
-        this.spritesheet,
-        // source rectangle
-        this.frame * 64, 64, this.width, this.height,
-        // destination rectangle
-        this.x, this.y, this.width, this.height
-      );
+      this.frameRow = 1;
+      break;
+    case "jumping":
+      this.frameRow = 0;
       break;
     // TODO: Implement your player's redering according to state
   }
+  this._draw(ctx);
+}
+
+Player.prototype._draw = function(ctx) {
+    console.log(this.spritesheet);
+    ctx.drawImage(
+      // image
+      this.spritesheet,
+      // source rectangle
+      this.frame * this.width, this.frameRow * this.height, this.width, this.height,
+      // destination rectangle
+      this.x, this.y, this.width, this.height
+    );
 }
