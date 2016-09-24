@@ -12,10 +12,10 @@ module.exports = exports = Game;
  * @param {function} updateFunction function to update the game
  * @param {function} renderFunction function to render the game
  */
-function Game(screen, updateFunction, renderFunction, applyUserInputFunction) {
+function Game(screen, updateFunction, renderFunction, refreshGameObjectStatesFunction) {
   this.update = updateFunction;
   this.render = renderFunction;
-  this.applyUserInput = applyUserInputFunction;
+  this.refreshGameObjectStates = refreshGameObjectStatesFunction;
 
   // Set up buffers
   this.frontBuffer = screen;
@@ -52,7 +52,7 @@ Game.prototype.loop = function(newTime) {
   var elapsedTime = newTime - this.oldTime;
   this.oldTime = newTime;
   
-  this.applyUserInput(this.keyCode);
+  this.refreshGameObjectStates(this.keyCode);
   
   if(!this.paused) this.update(elapsedTime);
   this.render(elapsedTime, this.frontCtx);

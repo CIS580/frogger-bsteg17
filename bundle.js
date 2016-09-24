@@ -7,8 +7,10 @@ const Player = require('./player.js');
 
 /* Global variables */
 var canvas = document.getElementById('screen');
-var game = new Game(canvas, update, render);
+var keyCode;
+var game = new Game(canvas, update, render, applyUserInput);
 var player = new Player({x: 0, y: 240})
+console.log(player.state);
 
 /**
  * @function masterLoop
@@ -48,6 +50,25 @@ function render(elapsedTime, ctx) {
   player.render(elapsedTime, ctx);
 }
 
+/**
+  * @function applyUserInput
+  * Refreshes states of all game objects based on most recent user keyCode.
+  * @param {int} keyCode -- the user's keyboard keyCode for the current 
+  *    iteration of game loop (defaults to null)
+  */
+function applyUserInput(keyCode) {
+  console.log(player.state);
+  player.changeState(keyCode); 
+  console.log(player.state);
+}
+
+/**
+  * Listener that passes key code of user input to global variable keyCode
+  */
+document.addEventListener("keydown", function(event) {
+  game.keyCode = event.which;
+});
+
 },{"./game.js":2,"./player.js":3}],2:[function(require,module,exports){
 "use strict";
 
@@ -63,9 +84,10 @@ module.exports = exports = Game;
  * @param {function} updateFunction function to update the game
  * @param {function} renderFunction function to render the game
  */
-function Game(screen, updateFunction, renderFunction) {
+function Game(screen, updateFunction, renderFunction, applyUserInputFunction) {
   this.update = updateFunction;
   this.render = renderFunction;
+  this.applyUserInput = applyUserInputFunction;
 
   // Set up buffers
   this.frontBuffer = screen;
@@ -78,6 +100,9 @@ function Game(screen, updateFunction, renderFunction) {
   // Start the game loop
   this.oldTime = performance.now();
   this.paused = false;
+
+  //User input
+  this.keyCode = null;
 }
 
 /**
@@ -98,7 +123,9 @@ Game.prototype.loop = function(newTime) {
   var game = this;
   var elapsedTime = newTime - this.oldTime;
   this.oldTime = newTime;
-
+  
+  this.applyUserInput(this.keyCode);
+  
   if(!this.paused) this.update(elapsedTime);
   this.render(elapsedTime, this.frontCtx);
 
@@ -131,6 +158,19 @@ function Player(position) {
   this.spritesheet.src = encodeURI('assets/PlayerSprite2.png');
   this.timer = 0;
   this.frame = 0;
+}
+
+/**
+ * @function updates the player object
+ * {DOMHighResTimeStamp} time the elapsed time since the last frame
+ */
+Player.prototype.changeState = function(kc) {
+  switch(kc) {
+    case 32: //space key
+      this.state = "jumping";
+    default:
+      this.state = "idle";
+  }
 }
 
 /**
@@ -172,4 +212,4 @@ Player.prototype.render = function(time, ctx) {
   }
 }
 
-},{}]},{},[1]);
+},{}]},{},[1,2,3]);

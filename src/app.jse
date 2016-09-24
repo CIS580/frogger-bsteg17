@@ -7,7 +7,7 @@ const Player = require('./player.js');
 /* Global variables */
 var canvas = document.getElementById('screen');
 var keyCode;
-var game = new Game(canvas, update, render, applyUserInput);
+var game = new Game(canvas, update, render, refreshGameObjectStates);
 var player = new Player({x: 0, y: 240})
 console.log(player.state);
 
@@ -50,12 +50,12 @@ function render(elapsedTime, ctx) {
 }
 
 /**
-  * @function applyUserInput
+  * @function refreshGameObjectStates
   * Refreshes states of all game objects based on most recent user keyCode.
   * @param {int} keyCode -- the user's keyboard keyCode for the current 
   *    iteration of game loop (defaults to null)
   */
-function applyUserInput(keyCode) {
+function refreshGameObjectStates(keyCode) {
   console.log(player.state);
   player.changeState(keyCode); 
   console.log(player.state);
