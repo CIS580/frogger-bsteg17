@@ -12,7 +12,7 @@ var background = new Image();
 background.src = encodeURI('assets/background.png'); 
 var keyCode;
 var game = new Game(canvas, update, render, applyUserInput);
-var player = new Player({x: 0, y: 240})
+var player = new Player({x: 10, y: 240});
 var cars = Car.generateCars(canvas); 
 var logs = Log.generateLogs(canvas); 
 
