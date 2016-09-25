@@ -123,3 +123,11 @@ Player.prototype._draw = function(ctx) {
       this.x, this.y, this.width, this.height
     );
 }
+
+Player.prototype.carCollision = function() {
+  console.log("car collision");
+}
+
+Player.prototype.waterCollision = function() {
+  console.log("water collision");
+}

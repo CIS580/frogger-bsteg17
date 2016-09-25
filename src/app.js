@@ -40,6 +40,24 @@ function update(elapsedTime) {
   player.update(elapsedTime);
   cars.forEach(function(car){car.update(elapsedTime)});
   logs.forEach(function(log){log.update(elapsedTime)});
+  collisionCheck();
+}
+
+function collisionCheck() {
+  cars.forEach(function(car) {
+    if (player.x < car.x + car.width &&
+        player.x + player.width > car.x &&
+        player.y < car.y + car.height &&
+        player.height + player.y > car.y) {
+	  player.carCollision();
+    }
+  });
+  logs.forEach(function(log) {
+    if ((player.x < log.x + log.width && player.x + player.width > log.x) &&
+	(player.y + player.height < log.y || player.y > log.y + log.height)) {
+          player.waterCollision();  
+    }
+  });
 }
 
 /**
