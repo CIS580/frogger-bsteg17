@@ -5,14 +5,17 @@
 const Game = require('./game.js');
 const Player = require('./player.js');
 const Car = require('./car.js');
+const Log = require('./log.js');
 
 /* Global variables */
 var canvas = document.getElementById('screen');
+var background = new Image();
+background.src = encodeURI('assets/background.png'); 
 var keyCode;
 var game = new Game(canvas, update, render, applyUserInput);
 var player = new Player({x: 0, y: 240})
 var cars = Car.generateCars(canvas); 
-console.log(player.state);
+var logs = Log.generateLogs(canvas); 
 
 /**
  * @function masterLoop
@@ -37,6 +40,7 @@ masterLoop(performance.now());
 function update(elapsedTime) {
   player.update(elapsedTime);
   cars.forEach(function(car){car.update(elapsedTime)});
+  logs.forEach(function(log){log.update(elapsedTime)});
 }
 
 /**
@@ -47,10 +51,10 @@ function update(elapsedTime) {
   * @param {CanvasRenderingContext2D} ctx the context to render to
   */
 function render(elapsedTime, ctx) {
-  ctx.fillStyle = "lightblue";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
   player.render(elapsedTime, ctx);
   cars.forEach(function(car){car.render(elapsedTime, ctx)});
+  logs.forEach(function(log){log.render(elapsedTime, ctx)});
 }
 
 /**
@@ -71,7 +75,7 @@ document.addEventListener("keydown", function(event) {
   game.keyCode = event.which;
 });
 
-},{"./car.js":2,"./game.js":3,"./player.js":4}],2:[function(require,module,exports){
+},{"./car.js":2,"./game.js":3,"./log.js":4,"./player.js":5}],2:[function(require,module,exports){
 "use strict";
 
 const MS_PER_FRAME = 1000/8;
@@ -112,12 +116,12 @@ function Car(attrs) {
 
 Car.generateCars = function(canvas) {
   var cars = [];
-  for(var i = 0; i < 2; i++) {
+  for(var i = 1; i < 3; i++) {
     var randomNumber = Math.random();
     var randomDirection = (randomNumber - .5) / Math.abs(randomNumber - .5);
     var startingY = (randomDirection < 0 ? canvas.height : 0);
     var randomStyle = Math.floor(randomNumber * 5);
-    cars.push(new Car({x:100 * i, y:startingY, direction:randomDirection, style:randomStyle}));
+    cars.push(new Car({x:200 * i, y:startingY, direction:randomDirection, style:randomStyle}));
   }
   return cars;
 }
@@ -235,6 +239,94 @@ Game.prototype.loop = function(newTime) {
 const MS_PER_FRAME = 1000/8;
 
 /**
+ * @module exports the Log class
+ */
+module.exports = exports = Log;
+
+/**
+ * @constructor Log 
+ * Creates a new log object
+ * @param {Postition} position object specifying an x and y
+ */
+function Log(attrs) {
+  this.canvas = document.getElementsByTagName('canvas')[0];
+  this.state = "idle";
+  this.x = attrs.x;
+  this.y = attrs.y;
+  this.imageWidth  = 53;
+  this.imageHeight = 196;
+  this.width = 20;
+  this.height = this.width * (this.imageHeight / this.imageWidth);
+  this.timer = 0;
+  this.frame = 0;
+  this.direction = attrs.direction;
+  this.speed = 10;
+  this.spritesheet  = new Image();
+  this.spritesheet.src = encodeURI('assets/log.png');
+}  
+
+
+Log.generateLogs = function(canvas) {
+  var logs = [];
+  for(var i = 1; i < 3; i++) {
+    var randomNumber = Math.random();
+    var randomDirection = (randomNumber - .5) / Math.abs(randomNumber - .5);
+    var startingY = (randomDirection < 0 ? canvas.height : 0);
+    var randomStyle = Math.floor(randomNumber * 5);
+    logs.push(new Log({x:400* i, y:startingY, direction:randomDirection})); 
+  }
+  return logs;
+}
+
+/**
+ * @function updates the log object
+ * {DOMHighResTimeStamp} time the elapsed time since the last frame
+ */
+Log.prototype.update = function(time) {
+  this.timer += time;
+  if(this.timer > MS_PER_FRAME) {
+    this._move();
+    this.timer = 0;
+  }
+  //place log at beginning of path when log goes offscreen
+  if (this.direction == 1 && this.y > this.canvas.height) {
+    this.y = 0 - this.height;
+  }
+  if (this.direction == -1 && (this.y + this.height) < 0) {
+    this.y = this.canvas.height;
+  }
+}
+
+Log.prototype._move = function(){
+  this.y += this.direction * this.speed;
+}
+
+/**
+ * @function renders the log into the provided context
+ * {DOMHighResTimeStamp} time the elapsed time since the last frame
+ * {CanvasRenderingContext2D} ctx the context to render into
+ */
+Log.prototype.render = function(time, ctx) {
+  this._draw(ctx);
+}
+
+Log.prototype._draw = function(ctx) {
+  ctx.drawImage(
+    // image
+    this.spritesheet,
+    // source rectangle
+    0, 0, this.imageWidth, this.imageHeight,
+    // destination rectangle
+    this.x, this.y, this.width, this.height
+  );
+}
+
+},{}],5:[function(require,module,exports){
+"use strict";
+
+const MS_PER_FRAME = 1000/8;
+
+/**
  * @module exports the Player class
  */
 module.exports = exports = Player;
@@ -248,8 +340,10 @@ function Player(position) {
   this.state = "idle";
   this.x = position.x;
   this.y = position.y;
-  this.width  = 64;
-  this.height = 64;
+  this.imageWidth = 64;
+  this.imageHeight = 64;
+  this.width  = 60;
+  this.height = this.width * (this.imageHeight / this.imageWidth);
   this.spritesheet  = new Image();
   this.spritesheet.src = encodeURI('assets/PlayerSprite2.png');
   this.timer = 0;
@@ -345,10 +439,10 @@ Player.prototype._draw = function(ctx) {
       // image
       this.spritesheet,
       // source rectangle
-      this.frame * this.width, this.frameRow * this.height, this.width, this.height,
+      this.frame * this.imageWidth, this.frameRow * this.imageHeight, this.width, this.height,
       // destination rectangle
       this.x, this.y, this.width, this.height
     );
 }
 
-},{}]},{},[1,4,3,2]);
+},{}]},{},[1,5,3,2]);

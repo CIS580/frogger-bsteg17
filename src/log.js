@@ -3,62 +3,56 @@
 const MS_PER_FRAME = 1000/8;
 
 /**
- * @module exports the Car class
+ * @module exports the Log class
  */
-module.exports = exports = Car;
+module.exports = exports = Log;
 
 /**
- * @constructor Car 
- * Creates a new car object
+ * @constructor Log 
+ * Creates a new log object
  * @param {Postition} position object specifying an x and y
  */
-function Car(attrs) {
+function Log(attrs) {
   this.canvas = document.getElementsByTagName('canvas')[0];
   this.state = "idle";
   this.x = attrs.x;
   this.y = attrs.y;
-  this.carStyle = attrs.style;
-  this.imageWidth  = 237;
-  this.imageHeight = 339;
-  this.width = 100;
+  this.imageWidth  = 53;
+  this.imageHeight = 196;
+  this.width = 20;
   this.height = this.width * (this.imageHeight / this.imageWidth);
   this.timer = 0;
   this.frame = 0;
   this.direction = attrs.direction;
-  this.speed = 25;
+  this.speed = 10;
   this.spritesheet  = new Image();
-  //this.spritesheet.src = (this.direction > 0 ? encodeURI('assets/inverse_cars_mini.png') : encodeURI('assets/cars_mini.svg'));  
-  if (this.direction > 0) {
-    this.spritesheet.src = encodeURI('assets/inverse_cars_mini.png');
-  } else {
-    this.spritesheet.src = encodeURI('assets/cars_mini.png');
-  }
+  this.spritesheet.src = encodeURI('assets/log.png');
 }  
 
 
-Car.generateCars = function(canvas) {
-  var cars = [];
+Log.generateLogs = function(canvas) {
+  var logs = [];
   for(var i = 1; i < 3; i++) {
     var randomNumber = Math.random();
     var randomDirection = (randomNumber - .5) / Math.abs(randomNumber - .5);
     var startingY = (randomDirection < 0 ? canvas.height : 0);
     var randomStyle = Math.floor(randomNumber * 5);
-    cars.push(new Car({x:200 * i, y:startingY, direction:randomDirection, style:randomStyle}));
+    logs.push(new Log({x:400* i, y:startingY, direction:randomDirection})); 
   }
-  return cars;
+  return logs;
 }
 
 /**
- * @function updates the car object
+ * @function updates the log object
  * {DOMHighResTimeStamp} time the elapsed time since the last frame
  */
-Car.prototype.update = function(time) {
+Log.prototype.update = function(time) {
   this.timer += time;
   if(this.timer > MS_PER_FRAME) {
     this._move();
     this.timer = 0;
   }
-  //place car at beginning of path when car goes offscreen
+  //place log at beginning of path when log goes offscreen
   if (this.direction == 1 && this.y > this.canvas.height) {
     this.y = 0 - this.height;
   }
@@ -67,25 +61,25 @@ Car.prototype.update = function(time) {
   }
 }
 
-Car.prototype._move = function(){
+Log.prototype._move = function(){
   this.y += this.direction * this.speed;
 }
 
 /**
- * @function renders the car into the provided context
+ * @function renders the log into the provided context
  * {DOMHighResTimeStamp} time the elapsed time since the last frame
  * {CanvasRenderingContext2D} ctx the context to render into
  */
-Car.prototype.render = function(time, ctx) {
+Log.prototype.render = function(time, ctx) {
   this._draw(ctx);
 }
 
-Car.prototype._draw = function(ctx) {
+Log.prototype._draw = function(ctx) {
   ctx.drawImage(
     // image
     this.spritesheet,
     // source rectangle
-    (this.carStyle * this.imageWidth), 0, this.imageWidth, this.imageHeight,
+    0, 0, this.imageWidth, this.imageHeight,
     // destination rectangle
     this.x, this.y, this.width, this.height
   );

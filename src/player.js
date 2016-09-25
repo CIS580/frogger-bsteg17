@@ -16,8 +16,10 @@ function Player(position) {
   this.state = "idle";
   this.x = position.x;
   this.y = position.y;
-  this.width  = 64;
-  this.height = 64;
+  this.imageWidth = 64;
+  this.imageHeight = 64;
+  this.width  = 60;
+  this.height = this.width * (this.imageHeight / this.imageWidth);
   this.spritesheet  = new Image();
   this.spritesheet.src = encodeURI('assets/PlayerSprite2.png');
   this.timer = 0;
@@ -113,7 +115,7 @@ Player.prototype._draw = function(ctx) {
       // image
       this.spritesheet,
       // source rectangle
-      this.frame * this.width, this.frameRow * this.height, this.width, this.height,
+      this.frame * this.imageWidth, this.frameRow * this.imageHeight, this.width, this.height,
       // destination rectangle
       this.x, this.y, this.width, this.height
     );

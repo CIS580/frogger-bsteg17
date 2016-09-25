@@ -4,14 +4,17 @@
 const Game = require('./game.js');
 const Player = require('./player.js');
 const Car = require('./car.js');
+const Log = require('./log.js');
 
 /* Global variables */
 var canvas = document.getElementById('screen');
+var background = new Image();
+background.src = encodeURI('assets/background.png'); 
 var keyCode;
 var game = new Game(canvas, update, render, applyUserInput);
 var player = new Player({x: 0, y: 240})
 var cars = Car.generateCars(canvas); 
-console.log(player.state);
+var logs = Log.generateLogs(canvas); 
 
 /**
  * @function masterLoop
@@ -36,6 +39,7 @@ masterLoop(performance.now());
 function update(elapsedTime) {
   player.update(elapsedTime);
   cars.forEach(function(car){car.update(elapsedTime)});
+  logs.forEach(function(log){log.update(elapsedTime)});
 }
 
 /**
@@ -46,10 +50,10 @@ function update(elapsedTime) {
   * @param {CanvasRenderingContext2D} ctx the context to render to
   */
 function render(elapsedTime, ctx) {
-  ctx.fillStyle = "lightblue";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
   player.render(elapsedTime, ctx);
   cars.forEach(function(car){car.render(elapsedTime, ctx)});
+  logs.forEach(function(log){log.render(elapsedTime, ctx)});
 }
 
 /**
