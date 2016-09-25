@@ -19,7 +19,7 @@ function Log(attrs) {
   this.y = attrs.y;
   this.imageWidth  = 53;
   this.imageHeight = 196;
-  this.width = 20;
+  this.width = 50;
   this.height = this.width * (this.imageHeight / this.imageWidth);
   this.timer = 0;
   this.frame = 0;
@@ -32,12 +32,12 @@ function Log(attrs) {
 
 Log.generateLogs = function(canvas) {
   var logs = [];
-  for(var i = 1; i < 3; i++) {
+  for(var i = 0; i < 4; i++) {
     var randomNumber = Math.random();
     var randomDirection = (randomNumber - .5) / Math.abs(randomNumber - .5);
     var startingY = (randomDirection < 0 ? canvas.height : 0);
     var randomStyle = Math.floor(randomNumber * 5);
-    logs.push(new Log({x:400* i, y:startingY, direction:randomDirection})); 
+    logs.push(new Log({x:(60 * i) + 400, y:startingY, direction:randomDirection})); 
   }
   return logs;
 }

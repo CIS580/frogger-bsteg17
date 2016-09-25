@@ -272,7 +272,7 @@ Log.generateLogs = function(canvas) {
     var randomDirection = (randomNumber - .5) / Math.abs(randomNumber - .5);
     var startingY = (randomDirection < 0 ? canvas.height : 0);
     var randomStyle = Math.floor(randomNumber * 5);
-    logs.push(new Log({x:(60 * i) + 400, y:startingY, direction:randomDirection})); 
+    logs.push(new Log({x:(50 * i) + 450, y:startingY, direction:randomDirection})); 
   }
   return logs;
 }
@@ -447,4 +447,4 @@ Player.prototype._draw = function(ctx) {
     );
 }
 
-},{}]},{},[1,3,5,2,4]);
+},{}]},{},[1]);
