@@ -96,32 +96,30 @@ function Car(attrs) {
   this.x = attrs.x;
   this.y = attrs.y;
   this.carStyle = attrs.style;
-  this.imageWidth  = 237;
-  this.imageHeight = 339;
-  this.width = 100;
+  this.imageWidth  = 211;
+  this.imageHeight = 338;
+  this.width = 48;
   this.height = this.width * (this.imageHeight / this.imageWidth);
   this.timer = 0;
-  this.frame = 0;
   this.direction = attrs.direction;
   this.speed = 25;
   this.spritesheet  = new Image();
-  //this.spritesheet.src = (this.direction > 0 ? encodeURI('assets/inverse_cars_mini.png') : encodeURI('assets/cars_mini.svg'));  
   if (this.direction > 0) {
-    this.spritesheet.src = encodeURI('assets/inverse_cars_mini.png');
+    this.spritesheet.src = encodeURI('assets/inverse_cars_mini'+this.carStyle+'.png');
   } else {
-    this.spritesheet.src = encodeURI('assets/cars_mini.png');
+    this.spritesheet.src = encodeURI('assets/cars_mini'+this.carStyle+'.png');
   }
 }  
 
 
 Car.generateCars = function(canvas) {
   var cars = [];
-  for(var i = 1; i < 3; i++) {
+  for(var i = 1; i <= 5; i++) {
     var randomNumber = Math.random();
     var randomDirection = (randomNumber - .5) / Math.abs(randomNumber - .5);
     var startingY = (randomDirection < 0 ? canvas.height : 0);
-    var randomStyle = Math.floor(randomNumber * 5);
-    cars.push(new Car({x:200 * i, y:startingY, direction:randomDirection, style:randomStyle}));
+    var randomStyle = Math.floor(randomNumber * 5) + 1;
+    cars.push(new Car({x:57* i, y:startingY, direction:randomDirection, style:randomStyle}));
   }
   return cars;
 }
@@ -147,6 +145,7 @@ Car.prototype.update = function(time) {
 
 Car.prototype._move = function(){
   this.y += this.direction * this.speed;
+  console.log(this.y);
 }
 
 /**
@@ -163,7 +162,7 @@ Car.prototype._draw = function(ctx) {
     // image
     this.spritesheet,
     // source rectangle
-    (this.carStyle * this.imageWidth), 0, this.imageWidth, this.imageHeight,
+    0, 0, this.imageWidth, this.imageHeight,
     // destination rectangle
     this.x, this.y, this.width, this.height
   );
