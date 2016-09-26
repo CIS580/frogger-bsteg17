@@ -16,12 +16,37 @@ var player = new Player({x: 10, y: 240});
 var cars = Car.generateCars(canvas); 
 var logs = Log.generateLogs(canvas); 
 
+var isGameOver = false;
+var lives = 3;
+var score = 0;
+var level = 1;
+
+/**
+  * Listener that passes key code of user input to global variable keyCode
+  */
+document.addEventListener("keydown", function(event) {
+  game.keyCode = event.which;
+});
+
 /**
  * @function masterLoop
  * Advances the game in sync with the refresh rate of the screen
  * @param {DOMHighResTimeStamp} timestamp the current time
  */
 var masterLoop = function(timestamp) {
+  if(isGameOver) {
+    if (lives > 0) {
+      player.x = 0;
+      lives--;
+      isGameOver = false;
+    } else {
+      ctx = canvas.getContext('2d');
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "white";
+      ctx.fillText("GAME OVER", 100, 100);
+      return;
+    }
+  }
   game.loop(timestamp);
   window.requestAnimationFrame(masterLoop);
 }
@@ -44,18 +69,30 @@ function update(elapsedTime) {
 }
 
 function collisionCheck() {
+  console.log(player.x);
+  if (player.x > 600) {
+    player.x = 0;
+    cars.forEach(function(car){car.speed+=5;});
+    logs.forEach(function(log){log.speed+=5;});
+    score += 100;
+    level += 1;
+    return;
+  }
   cars.forEach(function(car) {
     if (player.x < car.x + car.width &&
         player.x + player.width > car.x &&
         player.y < car.y + car.height &&
         player.height + player.y > car.y) {
-	  player.carCollision();
+	  isGameOver = true;
     }
   });
   logs.forEach(function(log) {
-    if ((player.x < log.x + log.width && player.x + player.width > log.x) &&
-	(player.y + player.height < log.y || player.y > log.y + log.height)) {
-          player.waterCollision();  
+    if (player.x < log.x + log.width && player.x + player.width > log.x && player.state != "jumping") {
+      if (player.y + player.height < log.y || player.y > log.y + log.height) {
+	isGameOver = true;
+      } else {
+	player.rideLog(log);
+      }
     }
   });
 }
@@ -69,9 +106,10 @@ function collisionCheck() {
   */
 function render(elapsedTime, ctx) {
   ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
-  player.render(elapsedTime, ctx);
   cars.forEach(function(car){car.render(elapsedTime, ctx)});
   logs.forEach(function(log){log.render(elapsedTime, ctx)});
+  player.render(elapsedTime, ctx);
+  drawScoreLevelLives();
 }
 
 /**
@@ -91,3 +129,12 @@ function applyUserInput(keyCode) {
 document.addEventListener("keydown", function(event) {
   game.keyCode = event.which;
 });
+
+function drawScoreLevelLives() {
+  ctx = canvas.getContext('2d');
+  ctx.font = "30px Arial";
+  ctx.fillStyle = "red 30px";
+  ctx.fillText("Lives: "+lives, 350, 20);
+  ctx.fillText("Score: "+score, 460, 20);
+  ctx.fillText("Level: "+level, 570, 20);
+}

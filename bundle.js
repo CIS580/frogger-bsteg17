@@ -17,12 +17,37 @@ var player = new Player({x: 10, y: 240});
 var cars = Car.generateCars(canvas); 
 var logs = Log.generateLogs(canvas); 
 
+var isGameOver = false;
+var lives = 3;
+var score = 0;
+var level = 1;
+
+/**
+  * Listener that passes key code of user input to global variable keyCode
+  */
+document.addEventListener("keydown", function(event) {
+  game.keyCode = event.which;
+});
+
 /**
  * @function masterLoop
  * Advances the game in sync with the refresh rate of the screen
  * @param {DOMHighResTimeStamp} timestamp the current time
  */
 var masterLoop = function(timestamp) {
+  if(isGameOver) {
+    if (lives > 0) {
+      player.x = 0;
+      lives--;
+      isGameOver = false;
+    } else {
+      ctx = canvas.getContext('2d');
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "white";
+      ctx.fillText("GAME OVER", 100, 100);
+      return;
+    }
+  }
   game.loop(timestamp);
   window.requestAnimationFrame(masterLoop);
 }
@@ -45,18 +70,30 @@ function update(elapsedTime) {
 }
 
 function collisionCheck() {
+  console.log(player.x);
+  if (player.x > 600) {
+    player.x = 0;
+    cars.forEach(function(car){car.speed+=5;});
+    logs.forEach(function(log){log.speed+=5;});
+    score += 100;
+    level += 1;
+    return;
+  }
   cars.forEach(function(car) {
     if (player.x < car.x + car.width &&
         player.x + player.width > car.x &&
         player.y < car.y + car.height &&
         player.height + player.y > car.y) {
-	  player.carCollision();
+	  isGameOver = true;
     }
   });
   logs.forEach(function(log) {
-    if ((player.x < log.x + log.width && player.x + player.width > log.x) &&
-	(player.y + player.height < log.y || player.y > log.y + log.height)) {
-          player.waterCollision();  
+    if (player.x < log.x + log.width && player.x + player.width > log.x && player.state != "jumping") {
+      if (player.y + player.height < log.y || player.y > log.y + log.height) {
+	isGameOver = true;
+      } else {
+	player.rideLog(log);
+      }
     }
   });
 }
@@ -70,9 +107,10 @@ function collisionCheck() {
   */
 function render(elapsedTime, ctx) {
   ctx.drawImage(background, 0, 0, background.width, background.height, 0, 0, canvas.width, canvas.height);
-  player.render(elapsedTime, ctx);
   cars.forEach(function(car){car.render(elapsedTime, ctx)});
   logs.forEach(function(log){log.render(elapsedTime, ctx)});
+  player.render(elapsedTime, ctx);
+  drawScoreLevelLives();
 }
 
 /**
@@ -92,6 +130,15 @@ function applyUserInput(keyCode) {
 document.addEventListener("keydown", function(event) {
   game.keyCode = event.which;
 });
+
+function drawScoreLevelLives() {
+  ctx = canvas.getContext('2d');
+  ctx.font = "30px Arial";
+  ctx.fillStyle = "red 30px";
+  ctx.fillText("Lives: "+lives, 350, 20);
+  ctx.fillText("Score: "+score, 460, 20);
+  ctx.fillText("Level: "+level, 570, 20);
+}
 
 },{"./car.js":2,"./game.js":3,"./log.js":4,"./player.js":5}],2:[function(require,module,exports){
 "use strict";
@@ -120,7 +167,7 @@ function Car(attrs) {
   this.height = this.width * (this.imageHeight / this.imageWidth);
   this.timer = 0;
   this.direction = attrs.direction;
-  this.speed = 25;
+  this.speed = 10;
   this.spritesheet  = new Image();
   if (this.direction > 0) {
     this.spritesheet.src = encodeURI('assets/inverse_cars_mini'+this.carStyle+'.png');
@@ -132,12 +179,12 @@ function Car(attrs) {
 
 Car.generateCars = function(canvas) {
   var cars = [];
-  for(var i = 1; i <= 5; i++) {
+  for(var i = 0; i < 5; i++) {
     var randomNumber = Math.random();
     var randomDirection = (randomNumber - .5) / Math.abs(randomNumber - .5);
     var startingY = (randomDirection < 0 ? canvas.height : 0);
     var randomStyle = Math.floor(randomNumber * 5) + 1;
-    cars.push(new Car({x:57* i, y:startingY, direction:randomDirection, style:randomStyle}));
+    cars.push(new Car({x:(54 * i) + 63, y:startingY, direction:randomDirection, style:randomStyle}));
   }
   return cars;
 }
@@ -163,7 +210,6 @@ Car.prototype.update = function(time) {
 
 Car.prototype._move = function(){
   this.y += this.direction * this.speed;
-  console.log(this.y);
 }
 
 /**
@@ -277,7 +323,7 @@ function Log(attrs) {
   this.timer = 0;
   this.frame = 0;
   this.direction = attrs.direction;
-  this.speed = 10;
+  this.speed = 5;
   this.spritesheet  = new Image();
   this.spritesheet.src = encodeURI('assets/log.png');
 }  
@@ -369,6 +415,7 @@ function Player(position) {
   this.frameRow;
   this.framesBeforeNewInput = 0;
   this.columnOfGameScreen = -1;
+  this.log;
 }
 
 /**
@@ -401,7 +448,9 @@ Player.prototype.applyUserInput = function(kc) {
         this.framesBeforeNewInput = 4;
         break;
       default:
-        this.state = "idle";
+	if (this.state != "ridingLog") {
+          this.state = "idle";
+	}
     }  
   }
 }
@@ -433,6 +482,13 @@ Player.prototype._move = function(){
       this.y += (blockSize[this.columnOfGameScreen] * this.deltaY) / 4;
       this.framesBeforeNewInput--;
       break;
+    case "ridingLog":
+      if (this.framesBeforeNewInput > 0) { 
+        this.x += (blockSize[this.columnOfGameScreen] * this.deltaX) / 4;
+        this.framesBeforeNewInput--;
+      }
+      this.y += this.log.direction * this.log.speed;
+      break;
   }
 }
 
@@ -449,7 +505,9 @@ Player.prototype.render = function(time, ctx) {
     case "jumping":
       this.frameRow = 0;
       break;
-    // TODO: Implement your player's redering according to state
+    case "ridingLog":
+      this.frameRow = 1;
+      break;
   }
   this._draw(ctx);
 }
@@ -465,12 +523,14 @@ Player.prototype._draw = function(ctx) {
     );
 }
 
-Player.prototype.carCollision = function() {
-  console.log("car collision");
+Player.prototype.gameOver = function(ctx) {
+  ctx.fillRect(0,0,ctx.width,ctx.height); 
+  ctx.fillText("GAME OVER", 100, 100);
 }
-
-Player.prototype.waterCollision = function() {
-  console.log("water collision");
+ 
+Player.prototype.rideLog = function(log) {
+  this.state = "ridingLog";
+  this.log = log;
 }
 
 },{}]},{},[1,3,5,2,4]);

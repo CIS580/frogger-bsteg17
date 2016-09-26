@@ -24,7 +24,7 @@ function Log(attrs) {
   this.timer = 0;
   this.frame = 0;
   this.direction = attrs.direction;
-  this.speed = 10;
+  this.speed = 5;
   this.spritesheet  = new Image();
   this.spritesheet.src = encodeURI('assets/log.png');
 }  

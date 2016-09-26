@@ -24,7 +24,7 @@ function Car(attrs) {
   this.height = this.width * (this.imageHeight / this.imageWidth);
   this.timer = 0;
   this.direction = attrs.direction;
-  this.speed = 25;
+  this.speed = 10;
   this.spritesheet  = new Image();
   if (this.direction > 0) {
     this.spritesheet.src = encodeURI('assets/inverse_cars_mini'+this.carStyle+'.png');
@@ -36,12 +36,12 @@ function Car(attrs) {
 
 Car.generateCars = function(canvas) {
   var cars = [];
-  for(var i = 1; i <= 5; i++) {
+  for(var i = 0; i < 5; i++) {
     var randomNumber = Math.random();
     var randomDirection = (randomNumber - .5) / Math.abs(randomNumber - .5);
     var startingY = (randomDirection < 0 ? canvas.height : 0);
     var randomStyle = Math.floor(randomNumber * 5) + 1;
-    cars.push(new Car({x:57* i, y:startingY, direction:randomDirection, style:randomStyle}));
+    cars.push(new Car({x:(54 * i) + 63, y:startingY, direction:randomDirection, style:randomStyle}));
   }
   return cars;
 }
@@ -67,7 +67,6 @@ Car.prototype.update = function(time) {
 
 Car.prototype._move = function(){
   this.y += this.direction * this.speed;
-  console.log(this.y);
 }
 
 /**

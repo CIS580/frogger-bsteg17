@@ -28,6 +28,7 @@ function Player(position) {
   this.frameRow;
   this.framesBeforeNewInput = 0;
   this.columnOfGameScreen = -1;
+  this.log;
 }
 
 /**
@@ -60,7 +61,9 @@ Player.prototype.applyUserInput = function(kc) {
         this.framesBeforeNewInput = 4;
         break;
       default:
-        this.state = "idle";
+	if (this.state != "ridingLog") {
+          this.state = "idle";
+	}
     }  
   }
 }
@@ -92,6 +95,13 @@ Player.prototype._move = function(){
       this.y += (blockSize[this.columnOfGameScreen] * this.deltaY) / 4;
       this.framesBeforeNewInput--;
       break;
+    case "ridingLog":
+      if (this.framesBeforeNewInput > 0) { 
+        this.x += (blockSize[this.columnOfGameScreen] * this.deltaX) / 4;
+        this.framesBeforeNewInput--;
+      }
+      this.y += this.log.direction * this.log.speed;
+      break;
   }
 }
 
@@ -108,7 +118,9 @@ Player.prototype.render = function(time, ctx) {
     case "jumping":
       this.frameRow = 0;
       break;
-    // TODO: Implement your player's redering according to state
+    case "ridingLog":
+      this.frameRow = 1;
+      break;
   }
   this._draw(ctx);
 }
@@ -124,10 +136,12 @@ Player.prototype._draw = function(ctx) {
     );
 }
 
-Player.prototype.carCollision = function() {
-  console.log("car collision");
+Player.prototype.gameOver = function(ctx) {
+  ctx.fillRect(0,0,ctx.width,ctx.height); 
+  ctx.fillText("GAME OVER", 100, 100);
 }
-
-Player.prototype.waterCollision = function() {
-  console.log("water collision");
+ 
+Player.prototype.rideLog = function(log) {
+  this.state = "ridingLog";
+  this.log = log;
 }
